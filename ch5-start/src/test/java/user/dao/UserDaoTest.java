@@ -10,6 +10,7 @@ import org.springframework.dao.EmptyResultDataAccessException;
 import org.springframework.jdbc.support.SQLErrorCodeSQLExceptionTranslator;
 import org.springframework.jdbc.support.SQLExceptionTranslator;
 
+import user.domain.Level;
 import user.domain.User;
 
 import java.sql.SQLException;
@@ -24,11 +25,18 @@ class UserDaoTest {
     private UserDao userDao;
     private DataSource dataSource;
 
+    private User user1;
+    private User user2;
+    private User user3;
+
     @BeforeEach
     void setUp() {
         AnnotationConfigApplicationContext applicationContext = new AnnotationConfigApplicationContext(DaoFactory.class);
         userDao = applicationContext.getBean("userDao", UserDaoJdbc.class);
         dataSource = applicationContext.getBean("dataSource", DataSource.class);
+        this.user1 = new User("gyumee", "Kim", "springno1", Level.BASIC, 1, 0);
+        this.user2 = new User("leegw700", "Park±æ¿ø", "springno2", Level.SILVER, 55, 10);
+        this.user3 = new User("bumjin", "Son", "springno3", Level.GOLD, 100, 40);
     }
 
     @AfterEach
@@ -39,8 +47,6 @@ class UserDaoTest {
     @Test
     @DisplayName("새로운 User를 추가한다.")
     void add() throws SQLException {
-        User user1 = new User("deocks", "덕수", "deocksword");
-        User user2 = new User("jj", "재주", "jassword");
 
         userDao.add(user1);
         userDao.add(user2);
@@ -71,24 +77,18 @@ class UserDaoTest {
         userDao.deleteAll();
         assertThat(userDao.getCount()).isEqualTo(0);
 
-        User user1 = new User("deocks", "덕수", "deocksword");
         userDao.add(user1);
         assertThat(userDao.getCount()).isEqualTo(1);
 
-        User user2 = new User("jj", "재주", "jassword");
         userDao.add(user2);
         assertThat(userDao.getCount()).isEqualTo(2);
 
-        User user3 = new User("ki", "광일", "jassword");
         userDao.add(user3);
         assertThat(userDao.getCount()).isEqualTo(3);
     }
 
     @Test
     public void getAll()  {
-        User user1 = new User("deocks", "덕수", "deocksword");
-        User user2 = new User("jj", "재주", "jassword");
-        User user3 = new User("ki", "광일", "jassword");
 
         userDao.deleteAll();
         List<User> users = userDao.getAll();
@@ -108,9 +108,9 @@ class UserDaoTest {
         userDao.add(user3);
         List<User> users3 = userDao.getAll();
         assertThat(users3).size().isEqualTo(3);
-        checkSameUser(user1, users3.get(0));
-        checkSameUser(user2, users3.get(1));
-        checkSameUser(user3, users3.get(2));
+        checkSameUser(user1, users3.get(1));
+        checkSameUser(user2, users3.get(2));
+        checkSameUser(user3, users3.get(0));
 
         userDao.deleteAll();
         List<User> users0 = userDao.getAll();
@@ -120,20 +120,18 @@ class UserDaoTest {
     @Test
     @DisplayName("같은 id의 사용자를 등록하면 예외 발생")
     void duplicateKey() {
-        User user = new User("jj", "재주", "jassword");
-        userDao.add(user);
+        userDao.add(user1);
 
-        assertThatThrownBy(() -> userDao.add(user))
+        assertThatThrownBy(() -> userDao.add(user1))
             .isInstanceOf(DuplicateKeyException.class);
     }
 
     @Test
     @DisplayName("SQLException 전환 기능의 학습 테스트")
     void sqlExceptionTranslate() {
-        User user = new User("jj", "재주", "jassword");
         try {
-            userDao.add(user);
-            userDao.add(user);
+            userDao.add(user1);
+            userDao.add(user1);
         } catch (DuplicateKeyException exception) {
             SQLException sqlException = (SQLException)exception.getRootCause();
             SQLExceptionTranslator set = new SQLErrorCodeSQLExceptionTranslator(this.dataSource);
@@ -147,5 +145,8 @@ class UserDaoTest {
         assertThat(user1.getId()).isEqualTo(user2.getId());
         assertThat(user1.getName()).isEqualTo(user2.getName());
         assertThat(user1.getPassword()).isEqualTo(user2.getPassword());
+        assertThat(user1.getLevel()).isEqualTo(user2.getLevel());
+        assertThat(user1.getLogin()).isEqualTo(user2.getLogin());
+        assertThat(user1.getRecommend()).isEqualTo(user2.getRecommend());
     }
 }
