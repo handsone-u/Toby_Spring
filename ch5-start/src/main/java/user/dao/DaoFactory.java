@@ -3,6 +3,7 @@ package user.dao;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.jdbc.datasource.SimpleDriverDataSource;
+import user.service.UserLevelUpgradePolicy;
 import user.service.UserService;
 
 import javax.sql.DataSource;
@@ -27,7 +28,7 @@ public class DaoFactory {
     }
 
     @Bean
-    public UserService userService() {
+    public UserLevelUpgradePolicy userLevelUpgradePolicy() {
         return new UserService(userDao());
     }
 }

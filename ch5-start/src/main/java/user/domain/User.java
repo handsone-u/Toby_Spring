@@ -13,9 +13,18 @@ public class User {
 	int login;
 	int recommend;
 
-	public User() {
+	public void upgradeLevel() {
+		Level nextLevel = this.level.nextLevel();
+		if(nextLevel==null){
+			throw new IllegalStateException(this.level + "is not allowed to be upgraded.");
+		}
+		else{
+			this.level = nextLevel;
+		}
 	}
 
+	public User() {
+	}
 	public User(String id, String name, String password, Level level,
 				int login, int recommend) {
 		this.id = id;
@@ -25,7 +34,6 @@ public class User {
 		this.login = login;
 		this.recommend = recommend;
 	}
-
 
 	public String getId() {
 		return id;
