@@ -35,13 +35,34 @@ class UserDaoTest {
         userDao = applicationContext.getBean("userDao", UserDaoJdbc.class);
         dataSource = applicationContext.getBean("dataSource", DataSource.class);
         this.user1 = new User("gyumee", "Kim", "springno1", Level.BASIC, 1, 0);
-        this.user2 = new User("leegw700", "Park±æ¿ø", "springno2", Level.SILVER, 55, 10);
+        this.user2 = new User("leegw700", "Park", "springno2", Level.SILVER, 55, 10);
         this.user3 = new User("bumjin", "Son", "springno3", Level.GOLD, 100, 40);
     }
 
     @AfterEach
     void tearDown() {
         userDao.deleteAll();
+    }
+
+    @Test
+    @DisplayName("사용자 정보 수정 메소드.")
+    void update() {
+        userDao.deleteAll();
+
+        userDao.add(user1);
+        userDao.add(user2);
+
+        user1.setName("Oh");
+        user1.setPassword("springno6");
+        user1.setLevel(Level.GOLD);
+        user1.setLogin(1000);
+        user1.setRecommend(999);
+        userDao.update(user1);
+
+        User user1update = userDao.get(user1.getId());
+        checkSameUser(user1, user1update);
+        User user2update = userDao.get(user2.getId());
+        checkSameUser(user2, user2update);
     }
 
     @Test

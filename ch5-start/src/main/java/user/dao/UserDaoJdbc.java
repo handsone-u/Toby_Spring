@@ -24,6 +24,14 @@ public class UserDaoJdbc implements UserDao {
 
     private JdbcTemplate jdbcTemplate;
 
+    @Override
+    public void update(User user1) {
+        this.jdbcTemplate.update(
+                "update users set name =?, password=?, level=?, login=?, recommend=? where id=?",
+                user1.getName(), user1.getPassword(), user1.getLevel().intValue(), user1.getLogin(), user1.getRecommend(),
+                user1.getId());
+    }
+
     private RowMapper<User> userMapper =
             new RowMapper<User>() {
                 public User mapRow(ResultSet rs, int rowNum) throws SQLException {
