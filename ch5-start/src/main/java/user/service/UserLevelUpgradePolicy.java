@@ -7,7 +7,7 @@ public interface UserLevelUpgradePolicy {
 
     void upgradeLevel(User user);
 
-    void upgradeLevels();
+    void upgradeLevels() throws Exception;
 
     void add(User userWithLevel);
 }
