@@ -34,9 +34,9 @@ class UserDaoTest {
         AnnotationConfigApplicationContext applicationContext = new AnnotationConfigApplicationContext(DaoFactory.class);
         userDao = applicationContext.getBean("userDao", UserDaoJdbc.class);
         dataSource = applicationContext.getBean("dataSource", DataSource.class);
-        this.user1 = new User("gyumee", "Kim", "springno1", Level.BASIC, 1, 0);
-        this.user2 = new User("leegw700", "Park", "springno2", Level.SILVER, 55, 10);
-        this.user3 = new User("bumjin", "Son", "springno3", Level.GOLD, 100, 40);
+        this.user1 = new User("gyumee", "Kim", "springno1", "",Level.BASIC, 1, 0);
+        this.user2 = new User("leegw700", "Park", "springno2", "",Level.SILVER, 55, 10);
+        this.user3 = new User("bumjin", "Son", "springno3", "",Level.GOLD, 100, 40);
     }
 
     @AfterEach

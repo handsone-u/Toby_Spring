@@ -4,11 +4,13 @@ import org.junit.Before;
 import org.junit.Test;
 import org.junit.jupiter.api.DisplayName;
 import org.springframework.context.annotation.AnnotationConfigApplicationContext;
+import org.springframework.transaction.PlatformTransactionManager;
 import user.domain.Level;
 import user.domain.User;
 import user.service.UserLevelUpgradePolicy;
 import user.service.UserService;
 
+import javax.sql.DataSource;
 import java.sql.Connection;
 import java.util.Arrays;
 import java.util.List;
@@ -21,6 +23,8 @@ import static user.service.UserService.MIN_RECCOMEND_FOR_GOLD;
 public class UserServiceTest {
     UserLevelUpgradePolicy userService;
     UserDao userDao;
+    DataSource dataSource;
+    PlatformTransactionManager transactionManager;
     List<User> users;
 
     @Before
@@ -28,12 +32,14 @@ public class UserServiceTest {
         AnnotationConfigApplicationContext applicationContext = new AnnotationConfigApplicationContext(DaoFactory.class);
         this.userService = applicationContext.getBean("userLevelUpgradePolicy", UserLevelUpgradePolicy.class);
         this.userDao = applicationContext.getBean("userDao", UserDao.class);
+        this.dataSource = applicationContext.getBean("dataSource", DataSource.class);
+        this.transactionManager = applicationContext.getBean("transactionManager", PlatformTransactionManager.class);
         users = Arrays.asList(
-                new User("bumjin", "Park", "p1", Level.BASIC, MIN_LOGCOUNT_FOR_SILVER - 1, 0),
-                new User("joytouch", "Kang", "p2", Level.BASIC, MIN_LOGCOUNT_FOR_SILVER, 0),
-                new User("erwins", "Shin", "p3", Level.SILVER, 60, MIN_RECCOMEND_FOR_GOLD - 1),
-                new User("madnite1", "Lee", "p4", Level.SILVER, 60, MIN_RECCOMEND_FOR_GOLD),
-                new User("Green", "Oh", "p5", Level.GOLD, 100, Integer.MAX_VALUE)
+                new User("bumjin", "Park", "p1", "",Level.BASIC, MIN_LOGCOUNT_FOR_SILVER - 1, 0),
+                new User("joytouch", "Kang", "p2", "",Level.BASIC, MIN_LOGCOUNT_FOR_SILVER, 0),
+                new User("erwins", "Shin", "p3", "",Level.SILVER, 60, MIN_RECCOMEND_FOR_GOLD - 1),
+                new User("madnite1", "Lee", "p4", "",Level.SILVER, 60, MIN_RECCOMEND_FOR_GOLD),
+                new User("Green", "Oh", "p5", "",Level.GOLD, 100, Integer.MAX_VALUE)
         );
     }
 
@@ -42,7 +48,6 @@ public class UserServiceTest {
     public void upgradeLevels() throws Exception{
         userDao.deleteAll();
         for (User user : users) userDao.add(user);
-
         userService.upgradeLevels();
 
         checkLevelUpgraded(users.get(0), false);
@@ -50,7 +55,6 @@ public class UserServiceTest {
         checkLevelUpgraded(users.get(2), false);
         checkLevelUpgraded(users.get(3), true);
         checkLevelUpgraded(users.get(4), false);
-
     }
 
     @Test
@@ -82,37 +86,40 @@ public class UserServiceTest {
     }
 
 
-//    static class TestUserServiceException extends RuntimeException{
-//    }
-//
-//    static class TestUserService extends UserService {
-//        private String id;
-//
-//        private TestUserService(String id) {
-//            super();
-//            this.id = id;
-//        }
-//        public void upgradeLevel(User user) {
-//            if(user.getId().equals(this.id )) throw new TestUserServiceException();
-//            super.upgradeLevel(user);
-//        }
-//    }
-//
-//    @Test
-//    public void upgradeAllOrNothing() {
-//        UserService testUserService = new TestUserService(users.get(3).getId());
-//        testUserService.setUserDao(this.userDao);
-//        userDao.deleteAll();
-//
-//        for (User user : users) {
-//            userDao.add(user);
-//        }
-//        try {
-//            testUserService.upgradeLevels();
-//            fail("TestUserServiceException expected");
-//        } catch (TestUserServiceException e) {
-//        }
-//
-//        checkLevelUpgraded(users.get(1), false);
-//    }
+    static class TestUserServiceException extends RuntimeException{
+    }
+
+    static class TestUserService extends UserService {
+        private String id;
+
+        private TestUserService(String id) {
+            super();
+            this.id = id;
+        }
+        public void upgradeLevel(User user) {
+            if(user.getId().equals(this.id )) throw new TestUserServiceException();
+            super.upgradeLevel(user);
+        }
+    }
+
+    @Test
+    public void upgradeAllOrNothing() throws Exception{
+        UserService testUserService = new TestUserService(users.get(3).getId());
+        testUserService.setUserDao(this.userDao);
+        testUserService.setDataSource(this.dataSource);
+        testUserService.setTransactionManager(this.transactionManager);
+
+        userDao.deleteAll();
+
+        for (User user : users) {
+            userDao.add(user);
+        }
+        try {
+            testUserService.upgradeLevels();
+            fail("TestUserServiceException expected");
+        } catch (TestUserServiceException e) {
+        }
+
+        checkLevelUpgraded(users.get(1), false);
+    }
 }
