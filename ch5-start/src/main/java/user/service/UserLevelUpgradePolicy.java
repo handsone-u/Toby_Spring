@@ -1,5 +1,6 @@
 package user.service;
 
+import org.springframework.mail.MailSender;
 import user.domain.User;
 
 public interface UserLevelUpgradePolicy {
@@ -10,4 +11,6 @@ public interface UserLevelUpgradePolicy {
     void upgradeLevels() throws Exception;
 
     void add(User userWithLevel);
+
+    void setMailSender(MailSender mailSender);
 }
